@@ -1,0 +1,107 @@
+#############################################################################
+# Author:      Glen Morgan
+# Email:       gmorgan@pingidentity.com
+# Date:        Sept 2019
+# Description: Demostrate layering of server profiles to build a clustered
+#              PingFederate service using Docker Swarm
+#############################################################################
+
+version: "3.1"
+
+services:
+  pingfederate-admin:
+    image: pingidentity/pingfederate:edge
+    environment:
+      # **** SERVER PROFILES BEGIN ****
+      
+      # Server Profile - Product License
+      - SERVER_PROFILE_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_PATH=license/pingfederate
+      - SERVER_PROFILE_PARENT=CLUSTERING
+
+      # Server Profile - Clustering
+      - SERVER_PROFILE_CLUSTERING_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_CLUSTERING_PATH=clustering/pingfederate
+      - SERVER_PROFILE_CLUSTERING_PARENT=EXTENSIONS
+
+      # Server Profile - Extension
+      - SERVER_PROFILE_EXTENSIONS_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_EXTENSIONS_PATH=extensions/pingfederate
+      - SERVER_PROFILE_EXTENSIONS_PARENT=BASE
+      
+      # Base Server Profile
+      - SERVER_PROFILE_BASE_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_BASE_PATH=base/pingfederate
+      
+      # **** SERVER PROFILE END ****
+
+      # PingFederate Settings
+      - OPERATIONAL_MODE=CLUSTERED_CONSOLE
+      - CLUSTER_BIND_ADDRESS=LINK_LOCAL
+      - PF_CLUSTER_NAME=${PF_CLUSTER_NAME}
+
+      # AWS S3 Bucket details
+      - DISCOVERY_S3_LOCATION=${DISCOVERY_S3_LOCATION}
+      - DISCOVERY_S3_ACCESS_KEY=${DISCOVERY_S3_ACCESS_KEY}
+      - DISCOVERY_S3_SECRET_KEY=${DISCOVERY_S3_SECRET_KEY}
+      
+    deploy:
+      replicas: 1
+    ports:
+      - 9999:9999
+    networks:
+      - pingnet
+
+  pingfederate:
+    image: pingidentity/pingfederate:edge
+    command: ["sh", "-c", "wait-for pingfederate-admin:9999 -t 600 -- entrypoint.sh start-server"]
+    environment:
+      # **** SERVER PROFILES BEGIN ****
+      
+      # Server Profile - Product License
+      - SERVER_PROFILE_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_PATH=license/pingfederate
+      - SERVER_PROFILE_PARENT=CLUSTERING
+
+      # Server Profile - Clustering
+      - SERVER_PROFILE_CLUSTERING_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_CLUSTERING_PATH=clustering/pingfederate
+      - SERVER_PROFILE_CLUSTERING_PARENT=EXTENSIONS
+
+      # Server Profile - Extension
+      - SERVER_PROFILE_EXTENSIONS_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_EXTENSIONS_PATH=extensions/pingfederate
+      - SERVER_PROFILE_EXTENSIONS_PARENT=OAUTH
+
+      # Server Profile - OAuth Playground
+      - SERVER_PROFILE_OAUTH_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_OAUTH_PATH=oauth/pingfederate
+      - SERVER_PROFILE_OAUTH_PARENT=BASE
+      
+      # Base Server Profile
+      - SERVER_PROFILE_BASE_URL=${SERVER_PROFILE_URL}
+      - SERVER_PROFILE_BASE_PATH=base/pingfederate
+      
+      # **** SERVER PROFILE END ****
+      
+      # PingFederate Settings
+      - OPERATIONAL_MODE=CLUSTERED_ENGINE
+      - CLUSTER_BIND_ADDRESS=LINK_LOCAL
+      - PF_CLUSTER_NAME=${PF_CLUSTER_NAME}
+     
+      # AWS S3 Bucket details
+      - DISCOVERY_S3_LOCATION=${DISCOVERY_S3_LOCATION}
+      - DISCOVERY_S3_ACCESS_KEY=${DISCOVERY_S3_ACCESS_KEY}
+      - DISCOVERY_S3_SECRET_KEY=${DISCOVERY_S3_SECRET_KEY}
+    deploy:
+      replicas: 1
+    ports:
+      - 9031:9031
+    networks:
+      - pingnet
+
+networks:
+  pingnet:
+    ipam:
+      config:
+        - subnet: 169.254.1.0/24

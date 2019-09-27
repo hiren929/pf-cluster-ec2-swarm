@@ -1,0 +1,19 @@
+#########################################################################
+# Environments variables to be used for running the Swarm example
+# Prior to running docker swarm run the following command:
+# 
+# `source env_vars`
+#
+#########################################################################
+
+# GitHub Credentials
+
+export SERVER_PROFILE_URL=https://github.com/glmorgan/pf-swarm-cluster.git
+
+# AWS S3 Credentials
+export DISCOVERY_S3_ACCESS_KEY=
+export DISCOVERY_S3_LOCATION=
+export DISCOVERY_S3_SECRET_KEY=
+
+# PingFederate Cluster Name
+export PF_CLUSTER_NAME=IFLY_PF_CLUSTER

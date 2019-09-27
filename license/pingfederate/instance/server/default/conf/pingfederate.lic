@@ -1,0 +1,14 @@
+ID=1413546
+Organization=68
+Product=PingFederate
+Version=9.0
+IssueDate=2019-09-25
+EnforcementType=3
+ExpirationDate=2019-10-25
+NodeLimit=8
+Tier=Free
+SaasProvisioning=true
+WSTrustSTS=false
+OAuth=true
+SignCode=FF0F
+Signature=302C02140A9E4AA5EE7FA2D2874BB38C3499D5DC4D96BBAD021457BAA9FE0F19A12454988D3305EF202FF722E704
